@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import './App.css';
-
+import "./App.css";
 
 function App() {
   const [products, setProducts] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [productsPerPage] = useState(5);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
@@ -12,24 +13,34 @@ function App() {
       .then((data) => setProducts(data));
   }, []);
 
-  const filteredProducts = products.filter((product) =>
-    product.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Get current products
+  const indexOfLastProduct = currentPage * productsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+  const currentProducts = products
+    .filter((product) =>
+      product.title.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .slice(indexOfFirstProduct, indexOfLastProduct);
+
+  // Change page
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  const pageNumbers = [];
+  for (let i = 1; i <= Math.ceil(products.length / productsPerPage); i++) {
+    pageNumbers.push(i);
+  }
 
   return (
-    <div className="container">
-      <div className="row">
-      <div className="row">
-      <div className="search">
+    <div>
+      <div className="search-container">
         <input
           type="text"
-          placeholder="Search by product name"
+          placeholder="Search by name"
           value={searchTerm}
-          onChange={(event) => setSearchTerm(event.target.value)}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
-      </div>
-      <div className="table-wrapper">
+      <div className="table-container">
         <table>
           <thead>
             <tr>
@@ -41,7 +52,7 @@ function App() {
             </tr>
           </thead>
           <tbody>
-            {filteredProducts.map((product) => (
+            {currentProducts.map((product) => (
               <tr key={product.id}>
                 <td>{product.id}</td>
                 <td>{product.title}</td>
@@ -54,7 +65,17 @@ function App() {
             ))}
           </tbody>
         </table>
-      </div>
+        <div className="pagination">
+          {pageNumbers.map((pageNumber) => (
+            <button
+              key={pageNumber}
+              onClick={() => paginate(pageNumber)}
+              className={currentPage === pageNumber ? "active" : null}
+            >
+              {pageNumber}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
